@@ -3,7 +3,7 @@ package database;
 import java.sql.*;
 
 public class DBConnection {
-    public Connection con;
+    public static Connection con;
     String url="jdbc:postgresql://localhost:5432/prisonmanagementdb";
     String password ="postgres";
     String user = "postgres";

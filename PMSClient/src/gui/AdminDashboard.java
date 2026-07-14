@@ -1,5 +1,7 @@
 package gui;
 
+import javafx.concurrent.Task;
+import java.util.List;
 import logic.systemsAdmin.SystemAdmin;
 import rmi.RemotePrisonService;
 import javafx.geometry.Insets;
@@ -58,9 +60,12 @@ public class AdminDashboard {
         // Right Side: Inputs for Add / Alter / Delete
         VBox userRightBox = new VBox(10);
         userRightBox.setMinWidth(280);
-        TextField txtUserId = new TextField(); txtUserId.setPromptText("User ID (Integer)");
-        TextField txtUserName = new TextField(); txtUserName.setPromptText("Full Name");
-        TextField txtUserPass = new TextField(); txtUserPass.setPromptText("Password");
+        TextField txtUserId = new TextField();
+        txtUserId.setPromptText("User ID (Integer)");
+        TextField txtUserName = new TextField();
+        txtUserName.setPromptText("Full Name");
+        TextField txtUserPass = new TextField();
+        txtUserPass.setPromptText("Password");
         ComboBox<String> cmbRole = new ComboBox<>();
         cmbRole.getItems().addAll("VISITOR", "ADVOCATE", "GUARD", "SYSTEM_ADMIN");
         cmbRole.setPromptText("Select Role");
@@ -73,7 +78,7 @@ public class AdminDashboard {
 
         Label lblUserStatus = new Label();
         userRightBox.getChildren().addAll(
-            new Label("User Controls:"), txtUserId, txtUserName, txtUserPass, cmbRole, userActions, lblUserStatus
+                new Label("User Controls:"), txtUserId, txtUserName, txtUserPass, cmbRole, userActions, lblUserStatus
         );
         userSplitLayout.getChildren().addAll(userLeftBox, userRightBox);
         userTab.setContent(userSplitLayout);
@@ -94,10 +99,14 @@ public class AdminDashboard {
         // Right Side: Inputs for Add / Alter / Delete
         VBox prisRightBox = new VBox(10);
         prisRightBox.setMinWidth(280);
-        TextField txtPrisId = new TextField(); txtPrisId.setPromptText("Prisoner ID (Integer)");
-        TextField txtPrisName = new TextField(); txtPrisName.setPromptText("Full Name");
-        TextField txtPrisCrime = new TextField(); txtPrisCrime.setPromptText("Crime (e.g. Cyber Fraud)");
-        TextField txtPrisSentence = new TextField(); txtPrisSentence.setPromptText("Sentence Duration (Months)");
+        TextField txtPrisId = new TextField();
+        txtPrisId.setPromptText("Prisoner ID (Integer)");
+        TextField txtPrisName = new TextField();
+        txtPrisName.setPromptText("Full Name");
+        TextField txtPrisCrime = new TextField();
+        txtPrisCrime.setPromptText("Crime (e.g. Cyber Fraud)");
+        TextField txtPrisSentence = new TextField();
+        txtPrisSentence.setPromptText("Sentence Duration (Months)");
 
         HBox prisActions = new HBox(10);
         Button btnAddPris = new Button("Add");
@@ -107,40 +116,59 @@ public class AdminDashboard {
 
         Label lblPrisStatus = new Label();
         prisRightBox.getChildren().addAll(
-            new Label("Prisoner Controls:"), txtPrisId, txtPrisName, txtPrisCrime, txtPrisSentence, prisActions, lblPrisStatus
+                new Label("Prisoner Controls:"), txtPrisId, txtPrisName, txtPrisCrime, txtPrisSentence, prisActions, lblPrisStatus
         );
         prisonerSplitLayout.getChildren().addAll(prisLeftBox, prisRightBox);
         prisonerTab.setContent(prisonerSplitLayout);
 
         tabPane.getTabs().addAll(userTab, prisonerTab);
         root.setCenter(tabPane);
-        
+
         // Log out btn
         HBox bottomPane = new HBox();
         bottomPane.setPadding(new Insets(10, 0, 0, 0));
         bottomPane.setAlignment(Pos.CENTER_RIGHT);
-        
+
         Button btnLogout = new Button("Log Out");
         btnLogout.setPrefSize(120, 35);
         btnLogout.setFont(Font.font("Tahoma", FontWeight.BOLD, 14));
         bottomPane.getChildren().add(btnLogout);
         root.setBottom(bottomPane);
-        
+
         // LOGOUT ACTION
-        btnLogout.setOnAction(e -> { 
-            Login login = new Login(); 
-            login.start(stage); 
+        btnLogout.setOnAction(e -> {
+            Login login = new Login();
+            login.start(stage);
         });
 
         // USER ACTIONS REFRESH
-        btnRefreshUsers.setOnAction(e -> { 
-            try {
-                userListView.getItems().clear();
-                userListView.getItems().addAll(pmsService.viewAllSystemUsers()); 
-            } catch (Exception ex) { 
+        btnRefreshUsers.setOnAction(e -> {
+            lblUserStatus.setTextFill(Color.BLUE);
+            lblUserStatus.setText("Connecting to server...");
+            // 1. Create a Task
+            Task<List<String>> fetchTask = new Task<>() {
+                @Override
+                protected List<String> call() throws Exception {
+                    // This happens on a background thread. UI won't freeze!
+                    return pmsService.viewAllSystemUsers();
+                }
+            };
+
+            // 2.what happens
+            fetchTask.setOnSucceeded(event -> {
+                userListView.getItems().setAll(fetchTask.getValue()); // SetAll is cleaner than clear+addAll
+                lblUserStatus.setTextFill(Color.GREEN);
+                lblUserStatus.setText("Data Refreshed Successfully.");
+            });
+
+            // 3.what happens if the network or server fails
+            fetchTask.setOnFailed(event -> {
                 lblUserStatus.setTextFill(Color.RED);
-                lblUserStatus.setText("Server Error."); 
-            } 
+                lblUserStatus.setText("Server Error: " + fetchTask.getException().getMessage());
+            });
+
+            // 4. Start the thread 
+            new Thread(fetchTask).start();
         });
 
         // SYSTEM USER ADD BTN
@@ -150,20 +178,25 @@ public class AdminDashboard {
                 String name = txtUserName.getText().trim();
                 String pass = txtUserPass.getText().trim();
                 String role = cmbRole.getValue();
-                if(name.isEmpty() || pass.isEmpty() || role == null) {
-                    lblUserStatus.setTextFill(Color.RED); lblUserStatus.setText("Error: Fields cannot be blank!");
+                if (name.isEmpty() || pass.isEmpty() || role == null) {
+                    lblUserStatus.setTextFill(Color.RED);
+                    lblUserStatus.setText("Error: Fields cannot be blank!");
                     return;
                 }
                 if (pmsService.addSystemUser(id, name, pass, role)) {
-                    lblUserStatus.setTextFill(Color.GREEN); lblUserStatus.setText("User added successfully!");
+                    lblUserStatus.setTextFill(Color.GREEN);
+                    lblUserStatus.setText("User added successfully!");
                     btnRefreshUsers.fire();
                 } else {
-                    lblUserStatus.setTextFill(Color.RED); lblUserStatus.setText("Database rejected entry.");
+                    lblUserStatus.setTextFill(Color.RED);
+                    lblUserStatus.setText("Database rejected entry.");
                 }
             } catch (NumberFormatException ex) {
-                lblUserStatus.setTextFill(Color.RED); lblUserStatus.setText("ID must be a clean number.");
+                lblUserStatus.setTextFill(Color.RED);
+                lblUserStatus.setText("ID must be a clean number.");
             } catch (Exception ex) {
-                lblUserStatus.setTextFill(Color.RED); lblUserStatus.setText("Network Error.");
+                lblUserStatus.setTextFill(Color.RED);
+                lblUserStatus.setText("Network Error.");
             }
         });
 
@@ -175,13 +208,16 @@ public class AdminDashboard {
                 String pass = txtUserPass.getText().trim();
                 String role = cmbRole.getValue();
                 if (pmsService.alterSystemUser(id, name, pass, role)) {
-                    lblUserStatus.setTextFill(Color.GREEN); lblUserStatus.setText("User altered cleanly!");
+                    lblUserStatus.setTextFill(Color.GREEN);
+                    lblUserStatus.setText("User altered cleanly!");
                     btnRefreshUsers.fire();
                 } else {
-                    lblUserStatus.setTextFill(Color.RED); lblUserStatus.setText("Alter failed: ID not found.");
+                    lblUserStatus.setTextFill(Color.RED);
+                    lblUserStatus.setText("Alter failed: ID not found.");
                 }
             } catch (Exception ex) {
-                lblUserStatus.setTextFill(Color.RED); lblUserStatus.setText("Verify all fields / Connection Error.");
+                lblUserStatus.setTextFill(Color.RED);
+                lblUserStatus.setText("Verify all fields / Connection Error.");
             }
         });
 
@@ -190,14 +226,16 @@ public class AdminDashboard {
             try {
                 int id = Integer.parseInt(txtUserId.getText().trim());
                 if (pmsService.deleteSystemUser(id)) {
-                    lblUserStatus.setTextFill(Color.GREEN); lblUserStatus.setText("User dropped successfully.");
+                    lblUserStatus.setTextFill(Color.GREEN);
+                    lblUserStatus.setText("User dropped successfully.");
                     btnRefreshUsers.fire();
                 } else {
-                    lblUserStatus.setTextFill(Color.RED); lblUserStatus.setText("Delete failed: Check ID presence.");
+                    lblUserStatus.setTextFill(Color.RED);
+                    lblUserStatus.setText("Delete failed: Check ID presence.");
                 }
-            } catch (Exception ex) { 
-                lblUserStatus.setTextFill(Color.RED); 
-                lblUserStatus.setText("Provide an integer ID / Server Error."); 
+            } catch (Exception ex) {
+                lblUserStatus.setTextFill(Color.RED);
+                lblUserStatus.setText("Provide an integer ID / Server Error.");
             }
         });
 
@@ -207,7 +245,8 @@ public class AdminDashboard {
                 prisonerListView.getItems().clear();
                 prisonerListView.getItems().addAll(pmsService.viewAllPrisoners());
             } catch (Exception ex) {
-                lblPrisStatus.setTextFill(Color.RED); lblPrisStatus.setText("Server Connection Lost.");
+                lblPrisStatus.setTextFill(Color.RED);
+                lblPrisStatus.setText("Server Connection Lost.");
             }
         });
 
@@ -218,16 +257,18 @@ public class AdminDashboard {
                 String name = txtPrisName.getText().trim();
                 String crime = txtPrisCrime.getText().trim();
                 int months = Integer.parseInt(txtPrisSentence.getText().trim());
-                
+
                 if (pmsService.addPrisoner(id, name, crime, months)) {
-                    lblPrisStatus.setTextFill(Color.GREEN); lblPrisStatus.setText("Prisoner registered.");
+                    lblPrisStatus.setTextFill(Color.GREEN);
+                    lblPrisStatus.setText("Prisoner registered.");
                     btnRefreshPrisoners.fire();
                 } else {
-                    lblPrisStatus.setTextFill(Color.RED); lblPrisStatus.setText("Fail: Double check unique ID rules.");
+                    lblPrisStatus.setTextFill(Color.RED);
+                    lblPrisStatus.setText("Fail: Double check unique ID rules.");
                 }
-            } catch (Exception ex) { 
-                lblPrisStatus.setTextFill(Color.RED); 
-                lblPrisStatus.setText("Check formatting / Server Error."); 
+            } catch (Exception ex) {
+                lblPrisStatus.setTextFill(Color.RED);
+                lblPrisStatus.setText("Check formatting / Server Error.");
             }
         });
 
@@ -238,16 +279,18 @@ public class AdminDashboard {
                 String name = txtPrisName.getText().trim();
                 String crime = txtPrisCrime.getText().trim();
                 int months = Integer.parseInt(txtPrisSentence.getText().trim());
-                
+
                 if (pmsService.alterPrisoner(id, name, crime, months)) {
-                    lblPrisStatus.setTextFill(Color.GREEN); lblPrisStatus.setText("Prisoner record modified!");
+                    lblPrisStatus.setTextFill(Color.GREEN);
+                    lblPrisStatus.setText("Prisoner record modified!");
                     btnRefreshPrisoners.fire();
                 } else {
-                    lblPrisStatus.setTextFill(Color.RED); lblPrisStatus.setText("Target Prisoner ID not found.");
+                    lblPrisStatus.setTextFill(Color.RED);
+                    lblPrisStatus.setText("Target Prisoner ID not found.");
                 }
-            } catch (Exception ex) { 
-                lblPrisStatus.setTextFill(Color.RED); 
-                lblPrisStatus.setText("Verify formats / Server Error."); 
+            } catch (Exception ex) {
+                lblPrisStatus.setTextFill(Color.RED);
+                lblPrisStatus.setText("Verify formats / Server Error.");
             }
         });
 
@@ -256,14 +299,16 @@ public class AdminDashboard {
             try {
                 int id = Integer.parseInt(txtPrisId.getText().trim());
                 if (pmsService.deletePrisoner(id)) {
-                    lblPrisStatus.setTextFill(Color.GREEN); lblPrisStatus.setText("Prisoner dropped cleanly.");
+                    lblPrisStatus.setTextFill(Color.GREEN);
+                    lblPrisStatus.setText("Prisoner dropped cleanly.");
                     btnRefreshPrisoners.fire();
                 } else {
-                    lblPrisStatus.setTextFill(Color.RED); lblPrisStatus.setText("Record missing from data table.");
+                    lblPrisStatus.setTextFill(Color.RED);
+                    lblPrisStatus.setText("Record missing from data table.");
                 }
-            } catch (Exception ex) { 
-                lblPrisStatus.setTextFill(Color.RED); 
-                lblPrisStatus.setText("Input error on ID / Server Error."); 
+            } catch (Exception ex) {
+                lblPrisStatus.setTextFill(Color.RED);
+                lblPrisStatus.setText("Input error on ID / Server Error.");
             }
         });
 

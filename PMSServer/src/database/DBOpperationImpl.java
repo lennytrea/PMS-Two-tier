@@ -296,7 +296,7 @@ public List<Prisoner> getPrisonersForAdvocate(int advocateId) {
     }
 
     @Override
-    public boolean updateVisitStatus(int visitId, String status, int staffId) {
+    public synchronized boolean updateVisitStatus(int visitId, String status, int staffId) {
         String query = "UPDATE visits SET status = ?, staffid = ? WHERE visitid = ?";
         try (PreparedStatement pst = dbc.con.prepareStatement(query)) {
             pst.setString(1, status.toUpperCase());

@@ -21,7 +21,7 @@ public class Login extends Application {
     //handle the RMI lookup
     private boolean connectToServer() {
         try {
-            Registry registry = LocateRegistry.getRegistry("localhost", 1099);
+            Registry registry = LocateRegistry.getRegistry("192.168.1.6", 1099);
             pmsService = (RemotePrisonService) registry.lookup("PrisonService");
             System.out.println("Connected to RMI Server.");
             return true;
