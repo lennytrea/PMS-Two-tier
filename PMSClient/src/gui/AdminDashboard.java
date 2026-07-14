@@ -1,6 +1,6 @@
 package gui;
 
-import systemsAdmin.SystemAdmin;
+import logic.systemsAdmin.SystemAdmin;
 import rmi.RemotePrisonService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;

@@ -1,7 +1,7 @@
 package database;
 
-import model.Prisoner;
-import visitor.Visit;
+import logic.prisoner.Prisoner;
+import logic.visitor.Visit;
 import java.util.List;
 
 

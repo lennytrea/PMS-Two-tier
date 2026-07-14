@@ -86,7 +86,7 @@ public class Login extends Application {
             try {
                 int authenticatedId = Integer.parseInt(inputId);
                 
-                // CALL THE REMOTE SERVICE across the network!
+                // CALL THE REMOTE SERVICE
                 Object userSession = pmsService.authenticateUser(authenticatedId, inputPassword);
                 
                 if (userSession != null) {
@@ -94,21 +94,21 @@ public class Login extends Application {
                     lblMessage.setText("Success! Loading Dashboard...");
                     
                     // 6. ROUTING LOGIC
-                    if (userSession instanceof visitor.Visitor) {
+                    if (userSession instanceof logic.visitor.Visitor) {
                         // Pass the pmsService to next screen 
-                        VisitorDashboard dashboard = new VisitorDashboard((visitor.Visitor) userSession, pmsService);
+                        VisitorDashboard dashboard = new VisitorDashboard((logic.visitor.Visitor) userSession, pmsService);
                         dashboard.show(primaryStage);
                     } 
-                    else if (userSession instanceof advocate.Advocate) {
-                        AdvocateDashboard dashboard = new AdvocateDashboard((advocate.Advocate) userSession, pmsService);
+                    else if (userSession instanceof logic.advocate.Advocate) {
+                        AdvocateDashboard dashboard = new AdvocateDashboard((logic.advocate.Advocate) userSession, pmsService);
                         dashboard.show(primaryStage);
                     }
-                    else if (userSession instanceof systemsAdmin.SystemAdmin) {
-                        AdminDashboard dashboard = new AdminDashboard((systemsAdmin.SystemAdmin) userSession, pmsService);
+                    else if (userSession instanceof logic.systemsAdmin.SystemAdmin) {
+                        AdminDashboard dashboard = new AdminDashboard((logic.systemsAdmin.SystemAdmin) userSession, pmsService);
                         dashboard.show(primaryStage);
                     }
-                    else if (userSession instanceof model.Guard) {
-                        model.Guard g = (model.Guard) userSession;
+                    else if (userSession instanceof logic.guard.Guard) {
+                        logic.guard.Guard g = (logic.guard.Guard) userSession;
                         GuardDashboard gd = new GuardDashboard(g.getGuardId(), g.getFullName(), pmsService);
                         gd.start(primaryStage);
                     }

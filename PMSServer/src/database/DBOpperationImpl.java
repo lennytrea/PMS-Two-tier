@@ -1,7 +1,7 @@
 package database;
 
-import model.Prisoner;
-import visitor.Visit;
+import logic.prisoner.Prisoner;
+import logic.visitor.Visit;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +22,6 @@ public List<Prisoner> getPrisonersForAdvocate(int advocateId) {
         pst.setInt(1, advocateId);
         try (ResultSet rs = pst.executeQuery()) {
             while (rs.next()) {
-                // Your database natively stores months, which matches your refactored constructor slot!
                 int totalMonths = rs.getInt("sentencedurationmonths");
 
                 list.add(new Prisoner(
@@ -109,19 +108,19 @@ public List<Prisoner> getPrisonersForAdvocate(int advocateId) {
                             }
                         }
                         
-                        return new visitor.Visitor(userId, realName, password, linkedPrisonerId);
+                        return new logic.visitor.Visitor(userId, realName, password, linkedPrisonerId);
                         
                     } else if ("ADVOCATE".equalsIgnoreCase(databaseRole)) {
                         // Instantiates and returns the exact advocate type
-                        return new advocate.Advocate(userId, realName, password);
+                        return new logic.advocate.Advocate(userId, realName, password);
                     }
                     // Instantiates and returns the exact admin type
                     else if ("SYSTEM_ADMIN".equalsIgnoreCase(databaseRole)) {
-                        return new systemsAdmin.SystemAdmin(userId, realName, password);
+                        return new logic.systemsAdmin.SystemAdmin(userId, realName, password);
                     }
                     
                    else if ("GUARD".equalsIgnoreCase(databaseRole)) {
-                        return new model.Guard(userId, realName, "OFFICER-ACTIVE");
+                        return new logic.guard.Guard(userId, realName, "OFFICER-ACTIVE");
 }
                    
                 }

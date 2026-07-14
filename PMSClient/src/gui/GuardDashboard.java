@@ -8,7 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-import visitor.Visit;
+import logic.visitor.Visit;
 import java.util.List;
 import javafx.beans.value.ChangeListener;
 
@@ -94,13 +94,13 @@ public class GuardDashboard {
         lblSelectedVisit.setAlignment(Pos.CENTER);
         lblSelectedVisit.setMaxWidth(Double.MAX_VALUE);
 
-        btnApprove = new Button("✔ Approve Visit");
+        btnApprove = new Button("Approve Visit");
         btnApprove.setId("approve-button");
         btnApprove.setMaxWidth(Double.MAX_VALUE);
         btnApprove.setDisable(true);
         btnApprove.setOnAction(e -> handleStatusUpdate("APPROVED"));
 
-        btnReject = new Button("❌ Reject Visit");
+        btnReject = new Button("Reject Visit");
         btnReject.setId("reject-button");
         btnReject.setMaxWidth(Double.MAX_VALUE);
         btnReject.setDisable(true);

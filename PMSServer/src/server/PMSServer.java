@@ -6,7 +6,7 @@ import java.rmi.registry.Registry;
 public class PMSServer {
     public static void main(String[] args) {
         try {
-            // 1. Creating instance of the provider
+            // 1. Creating instance of the service provider
             PrisonServiceProvider provider = new PrisonServiceProvider();
 
             // 2. Starting on port 1099

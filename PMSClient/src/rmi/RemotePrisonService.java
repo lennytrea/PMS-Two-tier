@@ -3,8 +3,8 @@ package rmi;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
-import model.Prisoner;
-import visitor.Visit;
+import logic.prisoner.Prisoner;
+import logic.visitor.Visit;
 
 public interface RemotePrisonService extends Remote {
     

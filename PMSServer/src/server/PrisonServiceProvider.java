@@ -2,8 +2,8 @@ package server;
 
 import rmi.RemotePrisonService; 
 import database.DBOpperationImpl;
-import model.Prisoner;
-import visitor.Visit;
+import logic.prisoner.Prisoner;
+import logic.visitor.Visit;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;

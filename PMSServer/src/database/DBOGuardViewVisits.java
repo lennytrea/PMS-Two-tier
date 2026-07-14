@@ -1,6 +1,6 @@
 package database;
 
-import visitor.Visit;
+import logic.visitor.Visit;
 import java.util.List;
 
 public interface DBOGuardViewVisits {

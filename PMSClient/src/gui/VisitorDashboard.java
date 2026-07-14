@@ -1,7 +1,7 @@
 package gui;
 
-import visitor.Visitor;
-import visitor.Visit;
+import logic.visitor.Visitor;
+import logic.visitor.Visit;
 import rmi.RemotePrisonService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
