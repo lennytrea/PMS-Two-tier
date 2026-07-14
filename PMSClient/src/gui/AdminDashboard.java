@@ -149,7 +149,6 @@ public class AdminDashboard {
             Task<List<String>> fetchTask = new Task<>() {
                 @Override
                 protected List<String> call() throws Exception {
-                    // This happens on a background thread. UI won't freeze!
                     return pmsService.viewAllSystemUsers();
                 }
             };
